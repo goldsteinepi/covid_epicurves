@@ -1,6 +1,6 @@
 #################
 # COVID-19 infection date versus report date 
-# Citation: Goldstein ND, Quick H, Burstyn I. The impact of adjusting for misclassification in case ascertainment and uncertainty about date of infection in COVID-19 time series surveillance data on the estimated effective reproduction number. Manuscript in preparation.
+# Citation: Goldstein ND, Quick H, Burstyn I. Effect of adjustment for case misclassification and infection date uncertainty on estimates of COVID-19 effective reproduction number. Epidemiology. In Press.
 # 9/1/20 -- Neal Goldstein
 #################
 
@@ -228,11 +228,13 @@ library("EpiNow2") #deconvolution; see: https://epiforecasts.io/EpiNow2/
 ### NAIVE CURVES ###
 
 #plot naive curves
-palette = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+palette = c("#E11845", "#F2CA19", "#0057E9")
 plot(colorado_data$date, colorado_data$report, type="l", lwd=3, xaxt="n", xlab="Date", ylab="Cases", ylim=c(0,1500), col=palette[2])
+points(colorado_data$date[seq(1, length(colorado_data$date), 10)], colorado_data$report[seq(1, length(colorado_data$report), 10)], col=palette[2], pch=19)
 axis(side=1, at=seq(min(colorado_data$date), max(colorado_data$date), by=7), labels=format(seq(min(colorado_data$date), max(colorado_data$date), by=7), "%m-%d"), las=2, cex.axis=1)
-lines(colorado_data$date, colorado_data$onset, col=palette[3], lwd=3, lty=1)
-legend("topright", legend=c("Report date", "Onset date"), lty=1, col=palette[2:3], lwd=3, cex=1)
+lines(colorado_data$date, colorado_data$onset, col=palette[1], lwd=3, lty=1)
+points(colorado_data$date[seq(1, length(colorado_data$date), 10)], colorado_data$onset[seq(1, length(colorado_data$onset), 10)], col=palette[1], pch=15)
+legend("topright", legend=c("Report date", "Onset date"), lty=1, col=palette[2:1], pch=c(19,15), lwd=3, cex=1)
 
 
 ### EPINOW2 APPROACH TO RECOVERING INFECTION DATE ###
@@ -311,12 +313,14 @@ plot_lo = aggregate(epinow_posterior$value, list(epinow_posterior$date), quantil
 plot_hi = aggregate(epinow_posterior$value, list(epinow_posterior$date), quantile, probs=0.975)
 plot_dates = unique(epinow_posterior$date)
 
-palette = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-plot(plot_dates, plot_med$x, type="l", lwd=3, xaxt="n", xlab="Date", ylab="Cases", ylim=c(0,1500), col=palette[4])
+palette = c("#E11845", "#F2CA19", "#0057E9")
+plot(plot_dates, plot_med$x, type="l", lwd=3, xaxt="n", xlab="Date", ylab="Cases", ylim=c(0,1500), col=palette[3])
+points(plot_dates[seq(1, length(plot_dates), 10)], plot_med$x[seq(1, length(plot_med$x), 10)], col=palette[3], pch=17)
 axis(side=1, at=seq(min(plot_dates), max(plot_dates), by=7), labels=format(seq(min(plot_dates), max(plot_dates), by=7), "%m-%d"), las=2, cex.axis=1)
-polygon(x=c(plot_dates,rev(plot_dates)), y=c(plot_lo$x,rev(plot_hi$x)), col=rgb(t(col2rgb(palette[4])), alpha=100, maxColorValue=255), border=NA)
+polygon(x=c(plot_dates,rev(plot_dates)), y=c(plot_lo$x,rev(plot_hi$x)), col=rgb(t(col2rgb(palette[3])), alpha=100, maxColorValue=255), border=NA)
 lines(colorado_data$date, colorado_data$report, col=palette[2], lwd=3, lty=1)
-legend("topleft", legend=c("Reported", "Adjusted"), lty=1, col=palette[c(2,4)], lwd=3, cex=1)
+points(colorado_data$date[seq(1, length(colorado_data$date), 10)], colorado_data$report[seq(1, length(colorado_data$report), 10)], col=palette[2], pch=19)
+legend("topleft", legend=c("Reported", "Adjusted"), lty=1, col=palette[c(2,3)], pch=c(19,17), lwd=3, cex=1)
 
 rm(plot_med,plot_lo,plot_hi,plot_dates)
 
@@ -400,27 +404,34 @@ load("bayes_posterior_EpiNow_R.RData")
 ### Rt PLOTS ###
 
 #full time series
-palette = c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+palette = c("#E11845", "#F2CA19", "#0057E9")
 plot(compare_r$date, compare_r$observed_report_r, type="l", lwd=3, xaxt="n", xlab="Date", ylab="Rt", ylim=c(0.5,4), col=palette[2], main="A)")
+points(compare_r$date[seq(1, length(compare_r$date), 10)], compare_r$observed_report_r[seq(1, length(compare_r$observed_report_r), 10)], col=palette[2], pch=19)
 axis(side=1, at=seq(min(compare_r$date), max(compare_r$date), by=7), labels=format(seq(min(compare_r$date), max(compare_r$date), by=7), "%m-%d"), las=2, cex.axis=1)
 polygon(x=c(compare_r$date,rev(compare_r$date)), y=c(compare_r$observed_report_r_lo,rev(compare_r$observed_report_r_hi)), col=rgb(t(col2rgb(palette[2])), alpha=100, maxColorValue=255), border=NA)
-lines(compare_r$date, compare_r$observed_onset_r, col=palette[3], lwd=3, lty=1)
-polygon(x=c(compare_r$date,rev(compare_r$date)), y=c(compare_r$observed_onset_r_lo,rev(compare_r$observed_onset_r_hi)), col=rgb(t(col2rgb(palette[3])), alpha=100, maxColorValue=255), border=NA)
-lines(compare_r$date, compare_r$infect_report_r, col=palette[4], lwd=3, lty=1)
-polygon(x=c(compare_r$date,rev(compare_r$date)), y=c(compare_r$infect_report_r_lo,rev(compare_r$infect_report_r_hi)), col=rgb(t(col2rgb(palette[4])), alpha=100, maxColorValue=255), border=NA)
+lines(compare_r$date, compare_r$observed_onset_r, col=palette[1], lwd=3, lty=1)
+points(compare_r$date[seq(1, length(compare_r$date), 10)], compare_r$observed_onset_r[seq(1, length(compare_r$observed_onset_r), 10)], col=palette[1], pch=15)
+polygon(x=c(compare_r$date,rev(compare_r$date)), y=c(compare_r$observed_onset_r_lo,rev(compare_r$observed_onset_r_hi)), col=rgb(t(col2rgb(palette[1])), alpha=100, maxColorValue=255), border=NA)
+lines(compare_r$date, compare_r$infect_report_r, col=palette[3], lwd=3, lty=1)
+points(compare_r$date[seq(1, length(compare_r$date), 10)], compare_r$infect_report_r[seq(1, length(compare_r$infect_report_r), 10)], col=palette[3], pch=17)
+polygon(x=c(compare_r$date,rev(compare_r$date)), y=c(compare_r$infect_report_r_lo,rev(compare_r$infect_report_r_hi)), col=rgb(t(col2rgb(palette[3])), alpha=100, maxColorValue=255), border=NA)
 abline(h=1, lty=2, lwd=2)
-legend("topright", legend=c("Report date", "Onset date", "Adjusted"), lty=1, col=palette[2:4], lwd=3, cex=1)
+legend("topright", legend=c("Report date", "Onset date", "Adjusted"), lty=1, col=palette[c(2,1,3)], pch=c(19,15,17), lwd=3, cex=1)
 
 #post March time series
-plot(compare_r$date[compare_r$date>=as.Date("2020-04-01")], compare_r$observed_report_r[compare_r$date>=as.Date("2020-04-01")], type="l", lwd=3, xaxt="n", xlab="Date", ylab="Rt", ylim=c(0.5,1.8), col=palette[2], main="B)")
-axis(side=1, at=seq(min(compare_r$date[compare_r$date>=as.Date("2020-04-01")]), max(compare_r$date[compare_r$date>=as.Date("2020-04-01")]), by=7), labels=format(seq(min(compare_r$date[compare_r$date>=as.Date("2020-04-01")]), max(compare_r$date[compare_r$date>=as.Date("2020-04-01")]), by=7), "%m-%d"), las=2, cex.axis=1)
-polygon(x=c(compare_r$date[compare_r$date>=as.Date("2020-04-01")],rev(compare_r$date[compare_r$date>=as.Date("2020-04-01")])), y=c(compare_r$observed_report_r_lo[compare_r$date>=as.Date("2020-04-01")],rev(compare_r$observed_report_r_hi[compare_r$date>=as.Date("2020-04-01")])), col=rgb(t(col2rgb(palette[2])), alpha=100, maxColorValue=255), border=NA)
-lines(compare_r$date[compare_r$date>=as.Date("2020-04-01")], compare_r$observed_onset_r[compare_r$date>=as.Date("2020-04-01")], col=palette[3], lwd=3, lty=1)
-polygon(x=c(compare_r$date[compare_r$date>=as.Date("2020-04-01")],rev(compare_r$date[compare_r$date>=as.Date("2020-04-01")])), y=c(compare_r$observed_onset_r_lo[compare_r$date>=as.Date("2020-04-01")],rev(compare_r$observed_onset_r_hi[compare_r$date>=as.Date("2020-04-01")])), col=rgb(t(col2rgb(palette[3])), alpha=100, maxColorValue=255), border=NA)
-lines(compare_r$date[compare_r$date>=as.Date("2020-04-01")], compare_r$infect_report_r[compare_r$date>=as.Date("2020-04-01")], col=palette[4], lwd=3, lty=1)
-polygon(x=c(compare_r$date[compare_r$date>=as.Date("2020-04-01")],rev(compare_r$date[compare_r$date>=as.Date("2020-04-01")])), y=c(compare_r$infect_report_r_lo[compare_r$date>=as.Date("2020-04-01")],rev(compare_r$infect_report_r_hi[compare_r$date>=as.Date("2020-04-01")])), col=rgb(t(col2rgb(palette[4])), alpha=100, maxColorValue=255), border=NA)
+compare_r_post_march = compare_r[compare_r$date>=as.Date("2020-04-01"), ]
+plot(compare_r_post_march$date, compare_r_post_march$observed_report_r, type="l", lwd=3, xaxt="n", xlab="Date", ylab="Rt", ylim=c(0.5,1.8), col=palette[2], main="A)")
+points(compare_r_post_march$date[seq(1, length(compare_r_post_march$date), 10)], compare_r_post_march$observed_report_r[seq(1, length(compare_r_post_march$observed_report_r), 10)], col=palette[2], pch=19)
+axis(side=1, at=seq(min(compare_r_post_march$date), max(compare_r_post_march$date), by=7), labels=format(seq(min(compare_r_post_march$date), max(compare_r_post_march$date), by=7), "%m-%d"), las=2, cex.axis=1)
+polygon(x=c(compare_r_post_march$date,rev(compare_r_post_march$date)), y=c(compare_r_post_march$observed_report_r_lo,rev(compare_r_post_march$observed_report_r_hi)), col=rgb(t(col2rgb(palette[2])), alpha=100, maxColorValue=255), border=NA)
+lines(compare_r_post_march$date, compare_r_post_march$observed_onset_r, col=palette[1], lwd=3, lty=1)
+points(compare_r_post_march$date[seq(1, length(compare_r_post_march$date), 10)], compare_r_post_march$observed_onset_r[seq(1, length(compare_r_post_march$observed_onset_r), 10)], col=palette[1], pch=15)
+polygon(x=c(compare_r_post_march$date,rev(compare_r_post_march$date)), y=c(compare_r_post_march$observed_onset_r_lo,rev(compare_r_post_march$observed_onset_r_hi)), col=rgb(t(col2rgb(palette[1])), alpha=100, maxColorValue=255), border=NA)
+lines(compare_r_post_march$date, compare_r_post_march$infect_report_r, col=palette[3], lwd=3, lty=1)
+points(compare_r_post_march$date[seq(1, length(compare_r_post_march$date), 10)], compare_r_post_march$infect_report_r[seq(1, length(compare_r_post_march$infect_report_r), 10)], col=palette[3], pch=17)
+polygon(x=c(compare_r_post_march$date,rev(compare_r_post_march$date)), y=c(compare_r_post_march$infect_report_r_lo,rev(compare_r_post_march$infect_report_r_hi)), col=rgb(t(col2rgb(palette[3])), alpha=100, maxColorValue=255), border=NA)
 abline(h=1, lty=2, lwd=2)
-legend("topright", legend=c("Report date", "Onset date", "Adjusted"), lty=1, col=palette[2:4], lwd=3, cex=1)
+legend("topright", legend=c("Report date", "Onset date", "Adjusted"), lty=1, col=palette[c(2,1,3)], pch=c(19,15,17), lwd=3, cex=1)
 
 summary(compare_r$observed_report_r)
 summary(compare_r$observed_onset_r)
@@ -445,8 +456,7 @@ SpearmanRho(compare_r$observed_onset_r, compare_r$infect_report_r, conf.level=0.
 
 #observed
 sum(colorado_data$report)
-sum(colorado_data$report) / pop_size
-(sum(colorado_data$report) / pop_size) + c(-1.96,1.96)*(sqrt((sum(colorado_data$report) / pop_size)*(1-(sum(colorado_data$report) / pop_size))/pop_size))
+sum(colorado_data$report) / pop_size #confidence interval: https://sample-size.net/confidence-interval-proportion/
 #sum(colorado_data$tested)
 #sum(colorado_data$reported) / sum(colorado_data$tested)
 #min(colorado_data$date[colorado_data$report>=1])
